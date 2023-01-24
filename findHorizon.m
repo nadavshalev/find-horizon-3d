@@ -1,15 +1,15 @@
-function hotizen = findHorizon(faces, points, newPoint) %#codegen
+function hotizen = findHorizon(faces, points, newPoint)
 % get all neighores (simulate DCEL knolage)
 faceNb = findNeighbores(faces);
 
 % get all points in the hull
 vertPoints = points(unique([faces{:}]),:);
 
-% % check if the new point is inside the hull
-% if isPointInMesh(newPoint, points, faces)
-%     disp("point is inside");
-%     return
-% end
+% check if the new point is inside the hull
+if isPointInMesh(newPoint, points, faces)
+    disp("point is inside");
+    return
+end
 
 % find normal vercotrs of the faces (simulate DCEL knolage)
 normalVectors = clacNormalPoints(faces, points);
@@ -31,6 +31,7 @@ randPoint90Deg(3) = -(point2center(1)* randPoint90Deg(1) + point2center(2)*randP
 avAngle = clacAngle(randPoint90Deg);
 
 hotizen = [];
+iters = 0;
 while isempty(hotizen)
     % get closest normal (search KD-tree)
     IdxNN = knnsearch(KDtree, avAngle,'K',2);
@@ -41,7 +42,7 @@ while isempty(hotizen)
     visible = isVisible(points(tmpFace(1),:), normalVectors(planeInd,:), newPoint);
     
 %     % plot the noramal
-%     drawFaceNormals(points,faces(planeInd));
+    drawFaceNormals(points,faces(planeInd));
     
     % search with all neighbors
     for nb=faceNb{planeInd}
@@ -61,9 +62,16 @@ while isempty(hotizen)
         minAngle = avAngle;
         avAngle = mean([avAngle;maxAngle]);
     end
+
+    if iters > 1e3
+        disp("More then 1000 Iters!");
+        return;
+    end
+    iters = iters + 1;
 end
 
-% % plot the horizon as a segment
-% edge = createEdge3d(points(hotizen(1),:), points(hotizen(2),:));
-% drawEdge3d(edge, LineWidth=4)
+% plot the horizon as a segment
+edge = createEdge3d(points(hotizen(1),:), points(hotizen(2),:));
+drawEdge3d(edge, LineWidth=4)
+disp(num2str(iters) + " iterations")
 end

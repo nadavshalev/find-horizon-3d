@@ -32,3 +32,4 @@ octave-workspace
 
 *.prj
 /codegen
+*.mat
